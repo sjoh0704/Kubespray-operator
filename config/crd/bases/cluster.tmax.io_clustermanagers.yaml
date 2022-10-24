@@ -117,6 +117,9 @@ spec:
             region:
               description: The region where VM is working
               type: string
+            sshKeyName:
+              description: The name of ssh key secret
+              type: string
             worker:
               description: The info of worker instance
               properties:

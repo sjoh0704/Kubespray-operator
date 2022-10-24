@@ -117,11 +117,6 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (_ c
 		// secret.Labels[clusterV1alpha1.LabelKeyClmName] = secret.Labels[util.LabelKeyCapiClusterName]
 	}
 
-	// sjoh
-	// _, isCapiKubeconfig := secret.Labels[util.LabelKeyCapiClusterName]
-	// Add finalizer first if not exist to avoid the race condition between init and delete
-	// capi에 의해 생성된 kubeconfig secret은 capi controller가 처리할 수 있도록 finalizer를 달지 않는다.
-	// if !controllerutil.ContainsFinalizer(secret, clusterV1alpha1.ClusterManagerFinalizer) && !isCapiKubeconfig {
 	if !controllerutil.ContainsFinalizer(secret, clusterV1alpha1.ClusterManagerFinalizer) {
 		controllerutil.AddFinalizer(secret, clusterV1alpha1.ClusterManagerFinalizer)
 		return ctrl.Result{}, nil

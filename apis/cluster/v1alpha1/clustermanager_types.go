@@ -58,6 +58,8 @@ type ClusterManagerSpec struct {
 type ProviderAwsSpec struct {
 	// The region where VM is working
 	Region string `json:"region,omitempty"`
+	// The name of ssh key secret
+	SshKeyName string `json:"sshKeyName,omitempty"`
 	// The info of bastion instance
 	Bastion Instance `json:"bastion,omitempty"`
 	// The info of master instance

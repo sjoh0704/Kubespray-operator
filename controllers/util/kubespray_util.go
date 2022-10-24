@@ -14,15 +14,16 @@ func CreateEnvFromClustermanagerSpec(clusterManager *clusterV1alpha1.ClusterMana
 
 	AwsSpec := clusterManager.AwsSpec
 	terraformAwsEnv := make(map[string]string)
+	godotenv.Load(".env")
 
 	// map deep copy
 	for k, v := range TerraformAwsEnv {
 		terraformAwsEnv[k] = v
 	}
 
-	// TODO crendential한 값은 secret으로 대체 
+	// TODO crendential한 값은 secret으로 대체
 	// terraform aws credential
-	godotenv.Load(".env")
+
 	awsAcessKey := os.Getenv("TF_VAR_AWS_ACCESS_KEY_ID")
 	awsSecretAccessKey := os.Getenv("TF_VAR_AWS_SECRET_ACCESS_KEY")
 	if awsAcessKey == "" || awsSecretAccessKey == "" {
@@ -31,16 +32,16 @@ func CreateEnvFromClustermanagerSpec(clusterManager *clusterV1alpha1.ClusterMana
 	terraformAwsEnv["TF_VAR_AWS_ACCESS_KEY_ID"] = awsAcessKey
 	terraformAwsEnv["TF_VAR_AWS_SECRET_ACCESS_KEY"] = awsSecretAccessKey
 
-	// aws region, os
+	// aws region, os, sshkey
 	terraformAwsEnv["TF_VAR_AWS_DEFAULT_REGION"] = AwsSpec.Region
 	terraformAwsEnv["HOST_OS"] = AwsSpec.HostOS
+	terraformAwsEnv["TF_VAR_AWS_SSH_KEY_NAME"] = AwsSpec.SshKeyName
 
 	// 종속 파라미터는 region과 OS에 따라서 달라지므로 다음 메서드를 통해서
 	params, err := GetAwsRegionalPreset(AwsSpec.Region, AwsSpec.HostOS)
 	if err != nil {
 		return nil, err
 	}
-	terraformAwsEnv["TF_VAR_AWS_SSH_KEY_NAME"] = params.SshKeyName
 	terraformAwsEnv["TF_VAR_aws_ami_name"] = params.AmiName
 	terraformAwsEnv["TF_VAR_aws_ami_owner"] = params.AmiOwner
 	terraformAwsEnv["USER"] = params.User
@@ -142,7 +143,7 @@ func GetAwsRegionalPreset(region string, os string) (*AwsRegionParams, error) {
 	}
 	params := &AwsRegionParams{}
 	if region == AP_NORTHEAST_2 {
-		params.SshKeyName = "ap-northeast-2-mo"
+		// params.SshKeyName = "ap-northeast-2-mo"
 		if os == UBUNTU {
 			params.AmiName = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20220609"
 			params.AmiOwner = "099720109477"
@@ -155,7 +156,7 @@ func GetAwsRegionalPreset(region string, os string) (*AwsRegionParams, error) {
 		}
 
 	} else if region == EU_WEST_1 {
-		params.SshKeyName = "eu-west-1-mo"
+		// params.SshKeyName = "eu-west-1-mo"
 		if os == UBUNTU {
 			params.AmiName = "ami-ubuntu-18.04-1.13.0-00-1548773800"
 			params.AmiOwner = "258751437250"

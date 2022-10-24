@@ -21,10 +21,9 @@ var AwsSupportOs []string = []string{
 }
 
 type AwsRegionParams struct {
-	AmiName    string
-	AmiOwner   string
-	User       string
-	SshKeyName string
+	AmiName  string
+	AmiOwner string
+	User     string
 }
 
 var TerraformAwsEnv map[string]string = map[string]string{

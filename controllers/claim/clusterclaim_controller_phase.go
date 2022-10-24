@@ -26,6 +26,11 @@ func (r *ClusterClaimReconciler) CreateClusterManager(ctx context.Context, cc *c
 		Namespace: cc.Namespace,
 	}
 
+	if err := r.CheckSshKeySecretExist(cc); err != nil {
+		log.Error(err, "Check if ssh key secret exist")
+		return ctrl.Result{RequeueAfter: requeueAfter10Second}, err
+	}
+
 	if err := r.Get(context.TODO(), key, &clusterV1alpha1.ClusterManager{}); errors.IsNotFound(err) {
 		newClusterManager := &clusterV1alpha1.ClusterManager{
 			ObjectMeta: metaV1.ObjectMeta{
@@ -50,6 +55,7 @@ func (r *ClusterClaimReconciler) CreateClusterManager(ctx context.Context, cc *c
 			},
 			AwsSpec: clusterV1alpha1.ProviderAwsSpec{
 				Region:         cc.Spec.ProviderAwsSpec.Region,
+				SshKeyName:     cc.Spec.ProviderAwsSpec.SshKeyName,
 				Bastion:        clusterV1alpha1.Instance(cc.Spec.ProviderAwsSpec.Bastion),
 				Master:         clusterV1alpha1.Instance(cc.Spec.ProviderAwsSpec.Master),
 				Worker:         clusterV1alpha1.Instance(cc.Spec.ProviderAwsSpec.Worker),

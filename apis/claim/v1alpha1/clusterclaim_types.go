@@ -66,8 +66,8 @@ type ClusterClaimSpec struct {
 }
 
 type AwsClaimSpec struct {
-	// The ssh key info to access VM
-	// SshKey string `json:"sshKey,omitempty"`
+	// The ssh key secret name to access VM. Ssh key name registerd in aws and secret name must be same
+	SshKeyName string `json:"sshKeyName,omitempty"`
 	// +kubebuilder:validation:Enum:=ap-northeast-1;ap-northeast-2;ap-south-1;ap-southeast-1;ap-northeast-2;ca-central-1;eu-central-1;eu-west-1;eu-west-2;eu-west-3;sa-east-1;us-east-1;us-east-2;us-west-1;us-west-2;
 	// The region where VM is working
 	Region string `json:"region,omitempty"`

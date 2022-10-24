@@ -13,6 +13,7 @@ spec:
   masterNum: 1
   workerNum: 1
   providerAwsSpec:
+    sshKeyName: seoul-sjoh
     region: ap-northeast-2
     bastion:
       type: t3.micro

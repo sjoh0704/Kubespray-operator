@@ -3,6 +3,5 @@ kind: Secret
 metadata:
   name: aws-private-key
 data:
-  key.pem: |
-        {{ base64 encoded value }}
+  key.pem: {{ base64 encoded value }}
   

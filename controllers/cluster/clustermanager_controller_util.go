@@ -300,7 +300,7 @@ func (r *ClusterManagerReconciler) InstallK8sJob(clusterManager *clusterV1alpha1
 									MountPath: "/context",
 								},
 								{
-									Name:      "aws-private-key",
+									Name:      "aws-ssh-key",
 									MountPath: "/kubespray/key.pem",
 									SubPath:   "key.pem",
 								},
@@ -317,10 +317,10 @@ func (r *ClusterManagerReconciler) InstallK8sJob(clusterManager *clusterV1alpha1
 							},
 						},
 						{
-							Name: "aws-private-key",
+							Name: "aws-ssh-key",
 							VolumeSource: coreV1.VolumeSource{
 								Secret: &coreV1.SecretVolumeSource{
-									SecretName:  "aws-private-key",
+									SecretName:  clusterManager.AwsSpec.SshKeyName,
 									DefaultMode: &privateKeyDefaultValue,
 								},
 							},

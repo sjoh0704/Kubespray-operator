@@ -121,8 +121,7 @@ spec:
                       type: string
                   type: object
                 region:
-                  description: The ssh key info to access VM SshKey string `json:"sshKey,omitempty"`
-                    The region where VM is working
+                  description: The region where VM is working
                   enum:
                   - ap-northeast-1
                   - ap-northeast-2
@@ -139,6 +138,10 @@ spec:
                   - us-east-2
                   - us-west-1
                   - us-west-2
+                  type: string
+                sshKeyName:
+                  description: The ssh key secret name to access VM. Ssh key name
+                    registerd in aws and secret name must be same
                   type: string
                 worker:
                   description: The info of worker instance
