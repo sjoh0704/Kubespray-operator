@@ -13,8 +13,8 @@ func CheckConditionExist(conditions []metav1.Condition, conditionType clusterV1a
 	return false
 }
 
-// condition이 존재하지 않을 경우, false로 취급한다.
-func CheckConditionExistAndConditionFalse(conditions []metav1.Condition, conditionType clusterV1alpha1.ConditionType) bool {
+// condition이 없거나 status가 false라면 true를 반환한다. 
+func CheckConditionNotExistOrConditionFalse(conditions []metav1.Condition, conditionType clusterV1alpha1.ConditionType) bool {
 	if !CheckConditionExist(conditions, conditionType) {
 		return true
 	}
@@ -23,6 +23,18 @@ func CheckConditionExistAndConditionFalse(conditions []metav1.Condition, conditi
 		return true
 	}
 	return false
+}
+
+// condition이 존재하고, status가 false라면 true를 반환한다. 
+func CheckConditionExistAndConditionFalse(conditions []metav1.Condition, conditionType clusterV1alpha1.ConditionType) bool {
+	if !CheckConditionExist(conditions, conditionType) {
+		return false
+	}
+
+	if meta.IsStatusConditionFalse(conditions, string(conditionType)) {
+		return false
+	}
+	return true
 }
 
 // condition이 있는지 먼저 체크 후, condtion 값이 true라면 true를 반환한다.

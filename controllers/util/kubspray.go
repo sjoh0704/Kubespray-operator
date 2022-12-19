@@ -21,7 +21,7 @@ var AwsSupportOs []string = []string{
 }
 
 type AwsRegionParams struct {
-	AmiName  string
+	AmiNames  string
 	AmiOwner string
 	User     string
 }

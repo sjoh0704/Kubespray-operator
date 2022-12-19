@@ -174,7 +174,7 @@ func (r *ClusterManagerReconciler) ChangeVolumeReclaimPolicy(ctx context.Context
 
 	if err := r.Get(context.TODO(), key, pvc); errors.IsNotFound(err) {
 		log.Info("Waiting for creating persistent volume claim")
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: requeueAfter10Second}, nil
 	} else if err != nil {
 		log.Error(err, "Failed to get persistent volume claim")
 		return ctrl.Result{}, err
@@ -229,18 +229,17 @@ func (r *ClusterManagerReconciler) ChangeVolumeReclaimPolicy(ctx context.Context
 }
 
 func (r *ClusterManagerReconciler) CreatePersistentVolumeClaim(ctx context.Context, clusterManager *clusterV1alpha1.ClusterManager) (ctrl.Result, error) {
-	if util.CheckConditionExist(clusterManager.GetConditions(), clusterV1alpha1.VolumeReadyCondition) {
+	if util.CheckConditionExistAndConditionTrue(clusterManager.GetConditions(), clusterV1alpha1.VolumeReadyCondition) {
 		return ctrl.Result{}, nil
 	}
-
 	log := r.Log.WithValues("clustermanager", clusterManager.GetNamespacedName())
-	log.Info("Start to reconcile phase for CreatePersistentVolumeClaim")
 	key := types.NamespacedName{
 		Name:      fmt.Sprintf("%s-volume-claim", clusterManager.Name),
 		Namespace: clusterManager.Namespace,
 	}
 
 	if err := r.Get(context.TODO(), key, &coreV1.PersistentVolumeClaim{}); errors.IsNotFound(err) {
+		log.Info("Start to reconcile phase for CreatePersistentVolumeClaim")
 		pvc := &coreV1.PersistentVolumeClaim{
 			ObjectMeta: metaV1.ObjectMeta{
 				Name:      fmt.Sprintf("%s-volume-claim", clusterManager.Name),
@@ -322,7 +321,7 @@ func (r *ClusterManagerReconciler) ProvisioningInfra(ctx context.Context, cluste
 func (r *ClusterManagerReconciler) InstallK8s(ctx context.Context, clusterManager *clusterV1alpha1.ClusterManager) (ctrl.Result, error) {
 
 	if util.CheckConditionExistAndConditionTrue(clusterManager.GetConditions(), clusterV1alpha1.K8sInstalledReadyCondition) ||
-		util.CheckConditionExistAndConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.InfrastructureProvisionedReadyCondition) ||
+		util.CheckConditionNotExistOrConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.InfrastructureProvisionedReadyCondition) ||
 		clusterManager.Status.FailureReason != nil {
 
 		return ctrl.Result{}, nil
@@ -367,8 +366,8 @@ func (r *ClusterManagerReconciler) InstallK8s(ctx context.Context, clusterManage
 func (r *ClusterManagerReconciler) CreateKubeconfig(ctx context.Context, clusterManager *clusterV1alpha1.ClusterManager) (ctrl.Result, error) {
 
 	if util.CheckConditionExistAndConditionTrue(clusterManager.GetConditions(), clusterV1alpha1.KubeconfigCreatedReadyCondition) ||
-		util.CheckConditionExistAndConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.K8sInstalledReadyCondition) ||
-		util.CheckConditionExistAndConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.InfrastructureProvisionedReadyCondition) ||
+		util.CheckConditionNotExistOrConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.K8sInstalledReadyCondition) ||
+		util.CheckConditionNotExistOrConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.InfrastructureProvisionedReadyCondition) ||
 		clusterManager.Status.FailureReason != nil {
 		return ctrl.Result{}, nil
 	}
@@ -564,7 +563,7 @@ func (r *ClusterManagerReconciler) CreateKubeconfig(ctx context.Context, cluster
 // }
 
 func (r *ClusterManagerReconciler) CreateArgocdResources(ctx context.Context, clusterManager *clusterV1alpha1.ClusterManager) (ctrl.Result, error) {
-	if util.CheckConditionExistAndConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.ControlplaneReadyCondition) ||
+	if util.CheckConditionNotExistOrConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.ControlplaneReadyCondition) ||
 		util.CheckConditionExistAndConditionTrue(clusterManager.GetConditions(), clusterV1alpha1.ArgoReadyCondition) {
 		return ctrl.Result{}, nil
 	}
@@ -692,7 +691,7 @@ func (r *ClusterManagerReconciler) CreateArgocdResources(ctx context.Context, cl
 }
 
 func (r *ClusterManagerReconciler) CreateGatewayResources(ctx context.Context, clusterManager *clusterV1alpha1.ClusterManager) (reconcile.Result, error) {
-	if util.CheckConditionExistAndConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.ArgoReadyCondition) ||
+	if util.CheckConditionNotExistOrConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.ArgoReadyCondition) ||
 		util.CheckConditionExistAndConditionTrue(clusterManager.GetConditions(), clusterV1alpha1.GatewayReadyCondition) {
 		return ctrl.Result{}, nil
 	}
@@ -775,7 +774,7 @@ func (r *ClusterManagerReconciler) CreateGatewayResources(ctx context.Context, c
 }
 
 func (r *ClusterManagerReconciler) CreateHyperAuthResources(ctx context.Context, clusterManager *clusterV1alpha1.ClusterManager) (reconcile.Result, error) {
-	if util.CheckConditionExistAndConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.GatewayReadyCondition) ||
+	if util.CheckConditionNotExistOrConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.GatewayReadyCondition) ||
 		util.CheckConditionExistAndConditionTrue(clusterManager.GetConditions(), clusterV1alpha1.AuthClientReadyCondition) {
 		return ctrl.Result{}, nil
 	}
@@ -874,7 +873,7 @@ func (r *ClusterManagerReconciler) CreateTraefikResources(ctx context.Context, c
 	// if !clusterManager.Status.AuthClientReady || clusterManager.Status.TraefikReady {
 	// 	return ctrl.Result{}, nil
 	// }
-	if util.CheckConditionExistAndConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.GatewayReadyCondition) ||
+	if util.CheckConditionNotExistOrConditionFalse(clusterManager.GetConditions(), clusterV1alpha1.GatewayReadyCondition) ||
 		util.CheckConditionExistAndConditionTrue(clusterManager.GetConditions(), clusterV1alpha1.TraefikReadyCondition) {
 		return ctrl.Result{}, nil
 	}

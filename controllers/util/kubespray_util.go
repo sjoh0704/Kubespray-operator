@@ -42,7 +42,7 @@ func CreateEnvFromClustermanagerSpec(clusterManager *clusterV1alpha1.ClusterMana
 	if err != nil {
 		return nil, err
 	}
-	terraformAwsEnv["TF_VAR_aws_ami_name"] = params.AmiName
+	terraformAwsEnv["TF_VAR_aws_ami_name"] = params.AmiNames
 	terraformAwsEnv["TF_VAR_aws_ami_owner"] = params.AmiOwner
 	terraformAwsEnv["USER"] = params.User
 
@@ -145,25 +145,25 @@ func GetAwsRegionalPreset(region string, os string) (*AwsRegionParams, error) {
 	if region == AP_NORTHEAST_2 {
 		// params.SshKeyName = "ap-northeast-2-mo"
 		if os == UBUNTU {
-			params.AmiName = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20220609"
-			params.AmiOwner = "099720109477"
+			params.AmiNames = "[\"ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20220609\"]"
+			params.AmiOwner = "[\"099720109477\"]"
 			params.User = "ubuntu"
 
 		} else if os == RHEL {
-			params.AmiName = "RHEL-8.2.0_HVM-20210907-x86_64-0-Hourly2-GP2"
-			params.AmiOwner = "309956199498"
+			params.AmiNames = "[\"RHEL-8.2.0_HVM-20210907-x86_64-0-Hourly2-GP2\"]"
+			params.AmiOwner = "[\"309956199498\"]"
 			params.User = "ec2-user"
 		}
 
 	} else if region == EU_WEST_1 {
 		// params.SshKeyName = "eu-west-1-mo"
 		if os == UBUNTU {
-			params.AmiName = "ami-ubuntu-18.04-1.13.0-00-1548773800"
-			params.AmiOwner = "258751437250"
+			params.AmiNames = "[\"ami-ubuntu-18.04-1.13.0-00-1548773800\"]"
+			params.AmiOwner = "[\"258751437250\"]"
 			params.User = "ubuntu"
 		} else if os == RHEL {
-			params.AmiName = "RHEL-8.2.0_HVM-20210907-x86_64-0-Hourly2-GP2"
-			params.AmiOwner = "309956199498"
+			params.AmiNames = "[\"RHEL-8.2.0_HVM-20210907-x86_64-0-Hourly2-GP2\"]"
+			params.AmiOwner = "[\"309956199498\"]"
 			params.User = "ec2-user"
 		}
 	}

@@ -296,10 +296,11 @@ func (r *ClusterManagerReconciler) reconcileDelete(ctx context.Context, clusterM
 	// 	return ctrl.Result{}, err
 	// }
 
+	//sjoh
 	// ArgoCD application이 모두 삭제되었는지 테스트
-	if err := r.CheckApplicationRemains(clusterManager); err != nil {
-		return ctrl.Result{RequeueAfter: requeueAfter10Second}, err
-	}
+	// if err := r.CheckApplicationRemains(clusterManager); err != nil {
+	// 	return ctrl.Result{RequeueAfter: requeueAfter10Second}, err
+	// }
 
 	// ClusterAPI-provider-aws의 경우, lb type의 svc가 남아있으면 infra nlb deletion이 stuck걸리면서 클러스터가 지워지지 않는 버그가 있음
 	// 이를 해결하기 위해 클러스터를 삭제하기 전에 lb type의 svc를 전체 삭제한 후 클러스터를 삭제
@@ -335,7 +336,7 @@ func (r *ClusterManagerReconciler) reconcileDelete(ctx context.Context, clusterM
 		log.Info("Kubeconfig secret for cluster is deleting")
 	}
 
-	// 생성 타입인지, 등록 타입인지에 따른 분기 처리
+	// 생성 타입의 경우 destroy job을 실행시켜 인프라를 지운다.
 	if clusterManager.Labels[clusterV1alpha1.LabelKeyClmClusterType] == clusterV1alpha1.ClusterTypeCreated {
 		key := types.NamespacedName{
 			Name:      fmt.Sprintf("%s-destroy-infra", clusterManager.Name),
@@ -349,13 +350,13 @@ func (r *ClusterManagerReconciler) reconcileDelete(ctx context.Context, clusterM
 			dij, err := r.DestroyInfrastrucutreJob(clusterManager)
 			if err != nil {
 				log.Error(err, "Fail to create destroy job")
-				return ctrl.Result{}, nil
+				return ctrl.Result{}, err
 			}
 
 			err = r.Create(context.TODO(), dij)
 			if err != nil {
 				log.Error(err, "Fail to create destroy job")
-				return ctrl.Result{}, nil
+				return ctrl.Result{}, err
 			}
 			return ctrl.Result{RequeueAfter: requeueAfter10Second}, nil
 		} else if err != nil {
@@ -363,13 +364,19 @@ func (r *ClusterManagerReconciler) reconcileDelete(ctx context.Context, clusterM
 			return ctrl.Result{}, err
 		}
 
-		if dij.Status.Active == 1 {
-			log.Info("Wait for cluster to be deleted")
-			return ctrl.Result{RequeueAfter: requeueAfter30Second}, nil
-		} else if dij.Status.Failed == 1 {
-			log.Error(nil, "Fail to destroy cluster")
-			return ctrl.Result{}, nil
+		if dij.Status.CompletionTime.IsZero() {
+			if dij.Status.Active == 1 {
+				log.Info("Wait for cluster to be deleted")
+				return ctrl.Result{RequeueAfter: requeueAfter10Second}, nil
+			} else if dij.Status.Failed == 1 {
+				// 실패하는 경우, 처음부터 생성이 잘못된 경우로, 관련된 모든 리소스를 삭제한다.
+				log.Info("Fail to execute destroy cluster job. But this case, creating might be failed")
+			} else {
+				log.Info("requeue due to incorrect job status")
+				return ctrl.Result{RequeueAfter: requeueAfter10Second}, nil
+			}
 		}
+		log.Info("Cluster was deleted successfully")
 	}
 
 	// sjoh 임시
@@ -378,7 +385,7 @@ func (r *ClusterManagerReconciler) reconcileDelete(ctx context.Context, clusterM
 	// 	log.Error(err, "Failed to delete cluster info from cluster_member table")
 	// 	return ctrl.Result{}, err
 	// }
-	
+
 	key = types.NamespacedName{
 		Name:      clusterManager.Name + util.KubeconfigSuffix,
 		Namespace: clusterManager.Namespace,
@@ -392,8 +399,9 @@ func (r *ClusterManagerReconciler) reconcileDelete(ctx context.Context, clusterM
 		return ctrl.Result{}, err
 	}
 
-	controllerutil.RemoveFinalizer(clusterManager, clusterV1alpha1.ClusterManagerFinalizer)
-	return ctrl.Result{}, nil
+	log.Info("Wait for kubeconfig secret to be deleted")
+
+	return ctrl.Result{Requeue: true}, nil
 }
 
 func (r *ClusterManagerReconciler) reconcilePhase(_ context.Context, clusterManager *clusterV1alpha1.ClusterManager) {

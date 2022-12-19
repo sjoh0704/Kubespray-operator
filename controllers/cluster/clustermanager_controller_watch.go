@@ -134,7 +134,7 @@ func (r *ClusterManagerReconciler) requeueClusterManagersForJob(o client.Object)
 				clusterV1alpha1.InfrastructureProvisioningReconciliationSucceededReason,
 				metaV1.ConditionTrue)
 
-			log.Info("Created infrastructure")
+			log.Info("Created infrastructure successfully")
 
 		} else if job.Annotations[clusterV1alpha1.AnnotationKeyJobType] == clusterV1alpha1.InstallingK8s {
 
@@ -143,7 +143,7 @@ func (r *ClusterManagerReconciler) requeueClusterManagersForJob(o client.Object)
 				clusterV1alpha1.K8sInstallingReconciliationSucceededReason,
 				metaV1.ConditionTrue)
 
-			log.Info("Installed k8s")
+			log.Info("Installed k8s successfully")
 
 		} else if job.Annotations[clusterV1alpha1.AnnotationKeyJobType] == clusterV1alpha1.CreatingKubeconfig {
 			util.SetStatusCondition(&clm.Status.Conditions,
@@ -151,7 +151,7 @@ func (r *ClusterManagerReconciler) requeueClusterManagersForJob(o client.Object)
 				clusterV1alpha1.KubeconfigCreatingReconciliationSucceededReason,
 				metaV1.ConditionTrue)
 
-			log.Info("Created kubeconfig")
+			log.Info("Created kubeconfig successfully")
 
 			util.SetStatusCondition(&clm.Status.Conditions,
 				clusterV1alpha1.ControlplaneReadyCondition,

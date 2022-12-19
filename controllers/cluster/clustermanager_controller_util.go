@@ -367,7 +367,8 @@ func (r *ClusterManagerReconciler) ProvisioningInfrastrucutreJob(clusterManager 
 							Image:   clusterV1alpha1.KubesprayImage,
 							Command: []string{"/bin/sh", "-c"},
 							Args:    []string{"./provision.sh 2> /dev/termination-log;"},
-							Env:     envList,
+							// Args: []string{"sleep 1000000;"},
+							Env:  envList,
 							// 	{
 							// 		SecretRef: &coreV1.SecretEnvSource{
 							// 			LocalObjectReference: coreV1.LocalObjectReference{
